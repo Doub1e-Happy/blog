@@ -1,0 +1,71 @@
+---
+title: "Set Up a Next.js Blog with MDX in 2026"
+description: "A step-by-step guide to setting up a static Next.js blog with MDX content, Tailwind CSS, and GitHub Pages deployment."
+date: 2026-07-05
+category: tutorials
+tags:
+  - nextjs
+  - mdx
+  - tutorial
+  - github-pages
+---
+
+Building a blog with Next.js and MDX is one of the best ways to create a fast, developer-friendly site. Here's how to do it in 2026.
+
+## Step 1: Create the project
+
+```bash
+npx create-next-app@latest my-blog --typescript --tailwind --app --src-dir
+```
+
+## Step 2: Install MDX dependencies
+
+```bash
+npm install @next/mdx @mdx-js/loader @mdx-js/react gray-matter
+```
+
+## Step 3: Configure `next.config.ts`
+
+```ts
+import createMDX from "@next/mdx";
+
+const nextConfig: NextConfig = {
+  output: "export",
+  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+};
+
+const withMDX = createMDX({ extension: /\.mdx?$/ });
+export default withMDX(nextConfig);
+```
+
+## Step 4: Create your content directory
+
+```
+content/blog/
+├── tech/
+├── life/
+└── tutorials/
+```
+
+## Step 5: Load posts with `gray-matter`
+
+```ts
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+
+export function getAllPosts() {
+  const files = findMdxFiles(path.join(process.cwd(), "content/blog"));
+  return files.map(file => {
+    const raw = fs.readFileSync(file, "utf-8");
+    const { data, content } = matter(raw);
+    return { slug: slugFromPath(file), frontmatter: data, content };
+  });
+}
+```
+
+## Deploy to GitHub Pages
+
+Add a GitHub Actions workflow that builds your static site and deploys to Pages. The build output goes to the `out/` directory — GitHub Pages serves it directly.
+
+That's it! You now have a fully static, fast, and free blog. Add search with Fuse.js, comments with Giscus, and you're set.

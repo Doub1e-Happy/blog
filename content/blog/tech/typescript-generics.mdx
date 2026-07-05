@@ -1,0 +1,62 @@
+---
+title: "TypeScript Generics: A Practical Guide"
+description: "Understand TypeScript generics through real-world examples — no abstract theory, just code you'll actually write."
+date: 2026-07-03
+category: tech
+tags:
+  - typescript
+  - generics
+  - type-safety
+---
+
+Generics are one of TypeScript's most powerful features, but they can feel intimidating. Let's walk through practical examples.
+
+## The problem
+
+Consider a function that returns the first element of an array:
+
+```ts
+function first(arr: any[]): any {
+  return arr[0];
+}
+
+const num = first([1, 2, 3]); // type is `any` — lost information!
+```
+
+We've lost the type. `num` is `any`, which defeats the purpose of TypeScript.
+
+## Enter generics
+
+```ts
+function first<T>(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+const num = first([1, 2, 3]); // type is `number`
+const str = first(["a", "b"]); // type is `string`
+```
+
+The `<T>` is a **type parameter** — it captures whatever type the caller passes in, and uses it throughout the function signature.
+
+## Constraining generics
+
+Sometimes you need to restrict what `T` can be:
+
+```ts
+function getLength<T extends { length: number }>(item: T): number {
+  return item.length;
+}
+
+getLength("hello"); // ✅ 5
+getLength([1, 2, 3]); // ✅ 3
+getLength(123); // ❌ Error: number doesn't have `length`
+```
+
+## Key takeaways
+
+1. Use generics when the type depends on the caller
+2. Use `extends` to constrain what types are allowed
+3. Generic defaults (`<T = string>`) can make APIs more ergonomic
+4. Don't overdo it — not every function needs to be generic
+
+Happy typing!
