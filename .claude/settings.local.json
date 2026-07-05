@@ -9,7 +9,13 @@
       "PowerShell(corepack *)",
       "Bash(npm --version)",
       "Bash(Write-Host test *)",
-      "PowerShell(winget install *)"
+      "PowerShell(winget install *)",
+      "PowerShell($env:GH_TOKEN = Read-Host \"Enter token\"; & \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth status 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo create Doub1e-Happy/blog --public --source=. --remote=origin --push 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth refresh -s workflow 2>&1)",
+      "Bash(git *)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" api repos/Doub1e-Happy/blog/pages --jq '.source' 2>&1)"
     ]
   }
 }
