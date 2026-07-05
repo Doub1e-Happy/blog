@@ -1,30 +1,30 @@
 ---
-title: "Set Up a Next.js Blog with MDX in 2026"
-description: "A step-by-step guide to setting up a static Next.js blog with MDX content, Tailwind CSS, and GitHub Pages deployment."
+title: "2026 年搭建 Next.js + MDX 博客"
+description: "从零搭建一个静态 Next.js 博客，含 MDX 内容、Tailwind CSS、GitHub Pages 部署的完整教程。"
 date: 2026-07-05
 category: tutorials
 tags:
   - nextjs
   - mdx
-  - tutorial
+  - 教程
   - github-pages
 ---
 
-Building a blog with Next.js and MDX is one of the best ways to create a fast, developer-friendly site. Here's how to do it in 2026.
+用 Next.js 和 MDX 搭建博客是创建快速、开发者友好站点的最佳方式之一。以下是 2026 年的做法。
 
-## Step 1: Create the project
+## 第一步：创建项目
 
 ```bash
 npx create-next-app@latest my-blog --typescript --tailwind --app --src-dir
 ```
 
-## Step 2: Install MDX dependencies
+## 第二步：安装 MDX 依赖
 
 ```bash
 npm install @next/mdx @mdx-js/loader @mdx-js/react gray-matter
 ```
 
-## Step 3: Configure `next.config.ts`
+## 第三步：配置 `next.config.ts`
 
 ```ts
 import createMDX from "@next/mdx";
@@ -38,7 +38,7 @@ const withMDX = createMDX({ extension: /\.mdx?$/ });
 export default withMDX(nextConfig);
 ```
 
-## Step 4: Create your content directory
+## 第四步：创建内容目录
 
 ```
 content/blog/
@@ -47,7 +47,7 @@ content/blog/
 └── tutorials/
 ```
 
-## Step 5: Load posts with `gray-matter`
+## 第五步：用 `gray-matter` 加载文章
 
 ```ts
 import fs from "fs";
@@ -64,8 +64,8 @@ export function getAllPosts() {
 }
 ```
 
-## Deploy to GitHub Pages
+## 部署到 GitHub Pages
 
-Add a GitHub Actions workflow that builds your static site and deploys to Pages. The build output goes to the `out/` directory — GitHub Pages serves it directly.
+添加 GitHub Actions 工作流来构建静态站点并部署到 Pages。构建产物输出到 `out/` 目录——GitHub Pages 直接提供服务。
 
-That's it! You now have a fully static, fast, and free blog. Add search with Fuse.js, comments with Giscus, and you're set.
+就这些！现在你有了一个完全静态、极速、免费的博客。再加上 Fuse.js 搜索和 Giscus 评论，一切就绪。

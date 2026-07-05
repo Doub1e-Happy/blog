@@ -22,21 +22,21 @@ export default function AboutPage() {
                 V0idbit
               </span>
             </h2>
-            <p className="text-text-secondary">全栈开发者 / 造物爱好者</p>
+            <p className="text-text-secondary">网络安全 / AI For CyberSecurity</p>
           </div>
         </div>
 
         <p>
-          你好，我是 V0idbit。我热爱构建——从 Web 应用到开发工具，从系统架构到创意编程。
+          我是V0idbit，一名热爱网络安全和AI技术的开发者。
           这个博客是我记录学习、分享思考和沉淀经验的地方。
         </p>
 
-        <h3>我写些什么</h3>
+        <h3>主要内容</h3>
         <ul>
-          <li>React、Next.js、TypeScript 等 Web 开发技术</li>
-          <li>开发工具与效率提升</li>
-          <li>软件架构与设计模式</li>
-          <li>实战教程与踩坑记录</li>
+          <li>安全攻防技术</li>
+          <li>智能体 Agent 研发</li>
+          <li>大模型应用</li>
+          <li>技术随笔与思辨</li>
         </ul>
 
         <h3>本站技术栈</h3>
