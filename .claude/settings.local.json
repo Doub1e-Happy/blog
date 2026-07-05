@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem *)",
+      "PowerShell(npm *)",
+      "Bash(npx create-next-app@latest *)",
+      "PowerShell(git clone *)",
+      "Bash(yarn --version)",
+      "PowerShell(corepack *)",
+      "Bash(npm --version)"
+    ]
+  }
+}
