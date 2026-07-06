@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const TITLES = [
   "voidbit",
-  "Security Researcher",
+  "Cyber Security",
   "AI Explorer",
-  "Full-Stack Developer",
+  "Agent Researcher",
 ];
 
 export function TypewriterTitle() {
