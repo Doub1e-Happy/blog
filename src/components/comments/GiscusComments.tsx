@@ -31,7 +31,7 @@ export function GiscusComments() {
 
   return (
     <Giscus
-      repo="untitled1github/blog"
+      repo="Doub1e-Happy/blog"
       repoId="R_kgDOO-----------"
       category="Announcements"
       categoryId="DIC_kwDOO-----------"

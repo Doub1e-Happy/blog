@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProgressBar } from "@/components/layout/ProgressBar";
 import { BackToTop } from "@/components/ui/BackToTop";
+import { ClickParticles } from "@/components/effects/ClickParticles";
+import { CursorGlow } from "@/components/effects/CursorGlow";
+import { MusicPlayer } from "@/components/widgets/MusicPlayer";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
 
@@ -54,17 +57,15 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-bg text-text">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider>
           <ProgressBar />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
           <BackToTop />
+          <MusicPlayer />
+          <ClickParticles />
+          <CursorGlow />
         </ThemeProvider>
       </body>
     </html>

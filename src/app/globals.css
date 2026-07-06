@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-bg: oklch(0.99 0 0);
   --color-bg-secondary: oklch(0.965 0.005 260);
   --color-surface: oklch(1 0 0);
@@ -18,15 +18,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 .dark {
-  --color-bg: oklch(0.12 0.01 260);
-  --color-bg-secondary: oklch(0.16 0.01 260);
-  --color-surface: oklch(0.18 0.01 260);
-  --color-text: oklch(0.93 0.005 260);
-  --color-text-secondary: oklch(0.6 0.02 260);
-  --color-border: oklch(0.25 0.01 260);
+  --color-bg: oklch(0 0 0);
+  --color-bg-secondary: oklch(0.1 0 0);
+  --color-surface: oklch(0.13 0 0);
+  --color-text: oklch(1 0 0);
+  --color-text-secondary: oklch(0.72 0.01 260);
+  --color-border: oklch(0.22 0 0);
   --color-primary: oklch(0.7 0.22 265);
   --color-primary-hover: oklch(0.78 0.22 265);
-  --color-code-bg: oklch(0.15 0.01 260);
+  --color-code-bg: oklch(0.1 0 0);
 }
 
 body {
@@ -195,4 +195,27 @@ body {
   background: oklch(0.75 0.2 80);
   padding: 0 2px;
   border-radius: 2px;
+}
+
+/* ── View Transition for theme toggle ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
 }
