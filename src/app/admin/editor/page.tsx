@@ -2,57 +2,70 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SITE } from "@/lib/constants";
-
-type SaveMode = "filesystem" | "github";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import {
+  REPO,
+  getToken,
+  fetchFileFromGitHub,
+  parseFrontmatter,
+  triggerDeploy,
+} from "@/lib/github";
+import { GitHubStatus } from "@/components/admin/GitHubStatus";
 
 export default function AdminEditorPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams.get("slug");
+  const category = searchParams.get("category") || "tech";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("tech");
+  const [postCategory, setPostCategory] = useState(category);
   const [tags, setTags] = useState("");
   const [content, setContent] = useState("");
+  const [sha, setSha] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
+  const [token, setToken] = useState("");
 
-  // 加载已有文章
+  // Initialize token
   useEffect(() => {
-    if (!slug) return;
-    fetch(`${SITE.basePath}/search-index.json`)
-      .then((r) => r.json())
-      .then((docs: Record<string, unknown>[]) => {
-        const doc = docs.find(
-          (d) => (d as Record<string, string>).slug === slug,
-        ) as Record<string, string> | undefined;
-        if (doc) {
-          setTitle(doc.title || "");
-          setDescription(doc.description || "");
-          setCategory(doc.category || "tech");
-          setTags((doc.tags as unknown as string[])?.join(", ") || "");
-          setContent(doc.content || "");
-        }
-      })
-      .catch(() => {});
-  }, [slug]);
+    setToken(getToken());
+  }, []);
 
-  // 粘贴图片处理
+  // Load existing post
+  useEffect(() => {
+    if (!slug || !token) return;
+    const filePath = `content/blog/${category}/${slug}.mdx`;
+    fetchFileFromGitHub(filePath, token).then((result) => {
+      if (!result) {
+        setError("加载文章失败，请检查 GitHub Token 和文件路径");
+        return;
+      }
+      setSha(result.sha);
+      const { frontmatter, body } = parseFrontmatter(result.content);
+      setTitle((frontmatter.title as string) || "");
+      setDescription((frontmatter.description as string) || "");
+      setPostCategory((frontmatter.category as string) || category);
+      const tagList = frontmatter.tags as string[] | undefined;
+      setTags(tagList?.join(", ") || "");
+      setContent(body);
+    });
+  }, [slug, category, token]);
+
+  // Paste image
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
       const items = e.clipboardData?.items;
       if (!items) return;
-
       for (const item of Array.from(items)) {
         if (item.type.startsWith("image/")) {
           e.preventDefault();
           const file = item.getAsFile();
           if (!file) continue;
-
           const reader = new FileReader();
           reader.onload = (ev) => {
             const dataUrl = ev.target?.result as string;
@@ -60,28 +73,33 @@ export default function AdminEditorPage() {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const imageMd = `\n![粘贴图片](${dataUrl})\n`;
-            const newContent =
-              content.slice(0, start) + imageMd + content.slice(end);
-            setContent(newContent);
+            setContent(content.slice(0, start) + imageMd + content.slice(end));
           };
           reader.readAsDataURL(file);
           break;
         }
       }
     },
-    [content],
+    [content]
   );
 
-  // 保存
-  const handleSave = async (mode: SaveMode) => {
+  // Save to GitHub + trigger deploy
+  const handleSave = async () => {
+    if (!token) {
+      setError("未设置 GitHub Token。请在管理后台设置。");
+      return;
+    }
     setSaving(true);
     setError("");
+
+    const slugStr = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const filePath = `content/blog/${postCategory}/${slugStr}.mdx`;
 
     const frontmatter = `---
 title: "${title}"
 description: "${description}"
 date: ${new Date().toISOString().split("T")[0]}
-category: ${category}
+category: ${postCategory}
 tags:
 ${tags
   .split(",")
@@ -93,72 +111,60 @@ ${tags
 
 ${content}`;
 
-    if (mode === "filesystem") {
-      try {
-        const res = await fetch("/api/save-post", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-            category,
-            content: frontmatter,
-          }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-      } catch (err) {
-        setError(`保存失败：${(err as Error).message}`);
-      }
-    } else if (mode === "github") {
-      const token = localStorage.getItem("github_token");
-      if (!token) {
-        setError("未设置 GitHub Token。请在 localStorage 中设置 'github_token'。");
-        setSaving(false);
-        return;
-      }
-      try {
-        const repo = "Doub1e-Happy/blog";
-        const filePath = `content/blog/${category}/${slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.mdx`;
-        const contentBase64 = btoa(unescape(encodeURIComponent(frontmatter)));
+    const contentBase64 = btoa(unescape(encodeURIComponent(frontmatter)));
 
-        const res = await fetch(
-          `https://api.github.com/repos/${repo}/contents/${filePath}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `token ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message: `📝 更新文章：${title}`,
-              content: contentBase64,
-            }),
+    const body: Record<string, unknown> = {
+      message: `📝 ${slug ? "更新" : "新建"}文章：${title}`,
+      content: contentBase64,
+    };
+    // Update existing file requires sha
+    if (sha) body.sha = sha;
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO}/contents/${filePath}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `token ${token}`,
+            "Content-Type": "application/json",
           },
-        );
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(
-            (errData as { message?: string }).message || res.statusText,
-          );
+          body: JSON.stringify(body),
         }
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-      } catch (err) {
-        setError(`GitHub 保存失败：${(err as Error).message}`);
+      );
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(
+          (errData as { message?: string }).message || res.statusText
+        );
       }
+
+      // Update sha
+      const data = await res.json();
+      if (data.content?.sha) setSha(data.content.sha);
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+
+      // Trigger deploy
+      const deployed = await triggerDeploy(token);
+      if (deployed) {
+        window.__githubStatusStartPolling?.();
+      }
+    } catch (err) {
+      setError(`保存失败：${(err as Error).message}`);
     }
     setSaving(false);
   };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* 工具栏 */}
+      {/* Toolbar */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/admin/posts")}
             className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary transition-colors hover:text-text"
           >
             &larr; 返回
@@ -175,26 +181,19 @@ ${content}`;
             {preview ? "编辑" : "预览"}
           </button>
           <button
-            onClick={() => handleSave("filesystem")}
-            disabled={saving}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
-          >
-            {saving ? "保存中..." : "保存（本地）"}
-          </button>
-          <button
-            onClick={() => handleSave("github")}
-            disabled={saving}
+            onClick={handleSave}
+            disabled={saving || !token}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 disabled:opacity-50"
           >
-            {saving ? "保存中..." : "保存到 GitHub"}
+            {saving ? "保存中..." : "保存并部署"}
           </button>
         </div>
       </div>
 
-      {/* 状态提示 */}
+      {/* Status messages */}
       {saved && (
         <div className="mb-4 rounded-lg bg-green-500/10 px-4 py-2 text-sm text-green-600 dark:text-green-400">
-          ✓ 文章保存成功！
+          ✓ 文章已保存到 GitHub，正在自动部署...
         </div>
       )}
       {error && (
@@ -203,8 +202,11 @@ ${content}`;
         </div>
       )}
 
+      {/* Deploy status */}
+      {token && <div className="mb-4"><GitHubStatus token={token} /></div>}
+
       <div className={`grid gap-8 ${preview ? "" : "lg:grid-cols-[2fr_1fr]"}`}>
-        {/* 编辑器 */}
+        {/* Editor */}
         {!preview ? (
           <>
             <div className="space-y-6">
@@ -219,12 +221,12 @@ ${content}`;
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onPaste={handlePaste}
-                placeholder="在这里写 Markdown... 支持粘贴图片！"
+                placeholder="在这里写 Markdown / MDX... 支持粘贴图片！"
                 className="min-h-[60vh] w-full rounded-xl border border-border bg-surface p-4 font-mono text-sm text-text placeholder:text-text-secondary/30 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
               />
             </div>
 
-            {/* 元信息侧栏 */}
+            {/* Metadata sidebar */}
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-text">
@@ -244,8 +246,8 @@ ${content}`;
                   分类
                 </label>
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  value={postCategory}
+                  onChange={(e) => setPostCategory(e.target.value)}
                   className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   <option value="tech">技术</option>
@@ -267,19 +269,31 @@ ${content}`;
                 />
               </div>
 
+              {!token && (
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    ⚠️ 未设置 GitHub Token，无法保存。请在
+                    <a href="/admin" className="underline">管理后台</a>
+                    设置。
+                  </p>
+                </div>
+              )}
+
               <div className="rounded-lg border border-border bg-bg-secondary p-3">
                 <p className="text-xs text-text-secondary">
-                  💡 <strong>提示：</strong>直接在编辑器中粘贴图片即可嵌入。
+                  💡 <strong>提示：</strong>保存后自动触发部署，约 2-3 分钟后生效。支持粘贴图片。
                 </p>
               </div>
             </div>
           </>
         ) : (
-          /* 预览 */
+          /* Preview */
           <div className="rounded-xl border border-border bg-surface p-8">
             <div className="prose max-w-none">
               {content ? (
-                <MarkdownPreview content={content} />
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {content}
+                </ReactMarkdown>
               ) : (
                 <p className="text-text-secondary">暂无内容可预览。</p>
               )}
@@ -289,80 +303,4 @@ ${content}`;
       </div>
     </div>
   );
-}
-
-function MarkdownPreview({ content }: { content: string }) {
-  const [html, setHtml] = useState("");
-
-  useEffect(() => {
-    const lines = content.split("\n");
-    const parts: string[] = [];
-    let inCode = false;
-    let codeBuf: string[] = [];
-
-    for (const line of lines) {
-      if (line.startsWith("```")) {
-        if (inCode) {
-          parts.push(
-            `<pre class="bg-code-bg border border-border rounded-lg p-4 overflow-x-auto my-4"><code class="text-sm font-mono">${codeBuf.join(
-              "\n",
-            )}</code></pre>`,
-          );
-          codeBuf = [];
-          inCode = false;
-        } else {
-          inCode = true;
-        }
-        continue;
-      }
-      if (inCode) {
-        codeBuf.push(line);
-        continue;
-      }
-
-      if (line.startsWith("### ")) {
-        parts.push(
-          `<h3 class="text-xl font-bold mt-6 mb-3">${line.slice(4)}</h3>`,
-        );
-      } else if (line.startsWith("## ")) {
-        parts.push(
-          `<h2 class="text-2xl font-bold mt-8 mb-4 border-b border-border pb-2">${line.slice(3)}</h2>`,
-        );
-      } else if (line.startsWith("# ")) {
-        parts.push(
-          `<h1 class="text-3xl font-bold mt-8 mb-4">${line.slice(2)}</h1>`,
-        );
-      } else if (line.startsWith("- ")) {
-        parts.push(`<li class="ml-4 text-text-secondary">${line.slice(2)}</li>`);
-      } else if (line.startsWith("> ")) {
-        parts.push(
-          `<blockquote class="border-l-2 border-primary pl-4 italic text-text-secondary my-4">${line.slice(2)}</blockquote>`,
-        );
-      } else if (line.trim() === "") {
-        parts.push("<br/>");
-      } else {
-        let l = line;
-        l = l.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-        l = l.replace(/\*(.+?)\*/g, "<em>$1</em>");
-        l = l.replace(/`(.+?)`/g, '<code class="bg-code-bg px-1 rounded text-sm font-mono">$1</code>');
-        l = l.replace(
-          /\[(.+?)\]\((.+?)\)/g,
-          '<a href="$2" class="text-primary hover:underline">$1</a>',
-        );
-        parts.push(`<p class="mb-3 text-text-secondary">${l}</p>`);
-      }
-    }
-
-    if (inCode && codeBuf.length > 0) {
-      parts.push(
-        `<pre class="bg-code-bg border border-border rounded-lg p-4 overflow-x-auto my-4"><code class="text-sm font-mono">${codeBuf.join(
-          "\n",
-        )}</code></pre>`,
-      );
-    }
-
-    setHtml(parts.join("\n"));
-  }, [content]);
-
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
