@@ -16,20 +16,11 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
 
     if (password === adminPassword) {
       setAuthenticated(true);
-      localStorage.setItem("admin_authed", "true");
+      setError(false);
     } else {
       setError(true);
     }
   };
-
-  if (!authenticated) {
-    const alreadyAuth =
-      typeof window !== "undefined" &&
-      localStorage.getItem("admin_authed") === "true";
-    if (alreadyAuth) {
-      return <>{children}</>;
-    }
-  }
 
   if (authenticated) {
     return <>{children}</>;
