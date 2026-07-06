@@ -68,7 +68,7 @@ export function PixelAvatar({ size = 80 }: { size?: number }) {
         justifyContent: "center",
       }}
     >
-      <div style={wrapperStyle} aria-label="V0idbit 像素头像">
+      <div style={wrapperStyle} aria-label="voidbit 像素头像">
         {grid.flat().map((cell, i) => (
           <div
             key={i}

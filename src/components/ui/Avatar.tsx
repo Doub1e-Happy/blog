@@ -1,6 +1,6 @@
 /**
  * @file 头像组件
- * 支持本地图片或外部 URL。将图片放入 public/images/avatar.png 即可生效。
+ * 支持本地图片或外部 URL。将图片放入 public/images/avator.jpg 即可生效。
  * 也可传入 src 属性使用外部图片，或通过 alt 自定义替代文本。
  *
  * 用法：
@@ -14,7 +14,7 @@ interface AvatarProps {
   alt?: string;
 }
 
-export function Avatar({ size = 80, src = "/images/avatar.png", alt = "V0idbit 头像" }: AvatarProps) {
+export function Avatar({ size = 80, src = "/images/avator.jpg", alt = "voidbit 头像" }: AvatarProps) {
   const borderWidth = Math.max(2, Math.round(size / 48));
 
   return (

@@ -18,7 +18,7 @@ export default function AboutPage() {
           <div>
             <h2 className="text-2xl font-bold">
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                V0idbit
+                voidbit
               </span>
             </h2>
             <p className="text-text-secondary">网络安全 / AI For CyberSecurity</p>
@@ -26,7 +26,7 @@ export default function AboutPage() {
         </div>
 
         <p>
-          我是V0idbit，一名热爱网络安全和AI技术的开发者。
+          我是voidbit，一名热爱网络安全和AI技术的开发者。
           这个博客是我记录学习、分享思考和沉淀经验的地方。
         </p>
 

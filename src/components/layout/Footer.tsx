@@ -12,7 +12,7 @@ export function Footer() {
               href="/"
               className="text-lg font-bold text-text transition-colors hover:text-primary"
             >
-              <span className="text-primary">&gt;</span> V0idbit
+              <span className="text-primary">&gt;</span> voidbit
             </Link>
             <p className="mt-2 text-sm text-text-secondary">
               {SITE.description}
@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-text-secondary">
           <p>
-            &copy; {new Date().getFullYear()} <strong className="text-text">V0idbit</strong>. 由
+            &copy; {new Date().getFullYear()} <strong className="text-text">voidbit</strong>. 由
             Next.js 驱动 &amp; 部署于 GitHub Pages.
           </p>
         </div>

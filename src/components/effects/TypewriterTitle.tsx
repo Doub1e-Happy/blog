@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TITLES = [
-  "V0idbit",
+  "voidbit",
   "Security Researcher",
   "AI Explorer",
   "Full-Stack Developer",

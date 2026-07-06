@@ -33,7 +33,7 @@ export function Header() {
           className="text-xl font-bold tracking-tight text-text hover:text-primary transition-colors"
         >
           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            V0idbit
+            voidbit
           </span>
         </Link>
 

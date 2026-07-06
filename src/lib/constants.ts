@@ -3,12 +3,12 @@
  */
 
 export const SITE = {
-  title: "V0idbit",
+  title: "voidbit",
   description: "全栈开发者的技术博客 — Web 开发、系统架构、创意编程。记录思考，分享造物。",
   url: "https://voidbit147.github.io/blog",
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
   author: {
-    name: "V0idbit",
+    name: "voidbit",
     github: "https://github.com/voidbit147",
     email: "voidbit147@users.noreply.github.com",
   },
