@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { getToken, setToken } from "@/lib/github";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export default function AdminPage() {
   const [tokenInput, setTokenInput] = useState("");
@@ -44,10 +45,9 @@ export default function AdminPage() {
     <div className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="mb-8 text-3xl font-bold">管理后台</h1>
 
-      {/* Quick actions */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/admin/editor.html"
+        <a
+          href={`${BASE}/admin/editor.html`}
           className="rounded-xl border border-border bg-surface p-6 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/5"
         >
           <div className="mb-2 text-2xl">✍️</div>
@@ -55,9 +55,9 @@ export default function AdminPage() {
           <p className="text-sm text-text-secondary">
             编写并发布一篇新博客文章
           </p>
-        </Link>
-        <Link
-          href="/admin/posts.html"
+        </a>
+        <a
+          href={`${BASE}/admin/posts.html`}
           className="rounded-xl border border-border bg-surface p-6 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/5"
         >
           <div className="mb-2 text-2xl">📋</div>
@@ -65,7 +65,7 @@ export default function AdminPage() {
           <p className="text-sm text-text-secondary">
             查看、编辑或删除已有文章
           </p>
-        </Link>
+        </a>
       </div>
 
       {/* GitHub Token */}

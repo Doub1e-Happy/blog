@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import {
   getToken,
   listGitHubDir,
@@ -9,10 +8,11 @@ import {
   parseFrontmatter,
   deleteFileFromGitHub,
   triggerDeploy,
-  REPO,
 } from "@/lib/github";
 import { GitHubStatus } from "@/components/admin/GitHubStatus";
 import { CATEGORIES } from "@/lib/constants";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 interface PostInfo {
   slug: string;
@@ -25,7 +25,6 @@ interface PostInfo {
   sha: string;
 }
 
-/** Delete confirmation dialog */
 function DeleteConfirmDialog({
   title,
   onConfirm,
@@ -75,12 +74,10 @@ export default function AdminPostsPage() {
   const [deleteTarget, setDeleteTarget] = useState<PostInfo | null>(null);
   const [deleteError, setDeleteError] = useState("");
 
-  // Initialize token
   useEffect(() => {
     setToken(getToken());
   }, []);
 
-  /** Fetch all posts from GitHub API */
   const fetchPosts = useCallback(async () => {
     if (!token) {
       setLoading(false);
@@ -94,7 +91,6 @@ export default function AdminPostsPage() {
     try {
       const allPosts: PostInfo[] = [];
 
-      // List each category directory
       for (const cat of CATEGORIES) {
         const entries = await listGitHubDir(
           `content/blog/${cat.slug}`,
@@ -102,12 +98,10 @@ export default function AdminPostsPage() {
         );
         if (!entries) continue;
 
-        // Filter .mdx files
         const mdxFiles = entries.filter(
           (e) => e.type === "file" && e.name.endsWith(".mdx")
         );
 
-        // Fetch each file's content to parse frontmatter
         for (const file of mdxFiles) {
           const result = await fetchFileFromGitHub(file.path, token);
           if (!result) continue;
@@ -128,7 +122,6 @@ export default function AdminPostsPage() {
         }
       }
 
-      // Sort by date descending
       allPosts.sort(
         (a, b) =>
           new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -145,7 +138,6 @@ export default function AdminPostsPage() {
     fetchPosts();
   }, [fetchPosts]);
 
-  /** Handle delete */
   const handleDelete = async (post: PostInfo) => {
     setDeleting(post.slug);
     setDeleteError("");
@@ -158,11 +150,8 @@ export default function AdminPostsPage() {
     );
 
     if (success) {
-      // Trigger redeploy
       await triggerDeploy(token);
       window.__githubStatusStartPolling?.();
-
-      // Remove from local list
       setPosts((prev) => prev.filter((p) => p.slug !== post.slug));
       setDeleteTarget(null);
     } else {
@@ -172,7 +161,6 @@ export default function AdminPostsPage() {
     setDeleting(null);
   };
 
-  // No token state
   if (!token && !loading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
@@ -180,18 +168,17 @@ export default function AdminPostsPage() {
           <p className="mb-3 text-yellow-600 dark:text-yellow-400">
             ⚠️ 未设置 GitHub Token，无法管理文章
           </p>
-          <Link
-            href="/admin.html"
+          <a
+            href={`${BASE}/admin.html`}
             className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
           >
             前往设置
-          </Link>
+          </a>
         </div>
       </div>
     );
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center text-text-secondary">
@@ -201,7 +188,6 @@ export default function AdminPostsPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
@@ -214,15 +200,14 @@ export default function AdminPostsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link
-            href="/admin.html"
+          <a
+            href={`${BASE}/admin.html`}
             className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary transition-colors hover:text-text"
           >
             &larr; 返回
-          </Link>
+          </a>
           <h1 className="text-3xl font-bold">管理文章</h1>
         </div>
         <div className="flex gap-2">
@@ -233,35 +218,31 @@ export default function AdminPostsPage() {
           >
             🔄 刷新
           </button>
-          <Link
-            href="/admin/editor.html"
+          <a
+            href={`${BASE}/admin/editor.html`}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
           >
             新建文章
-          </Link>
+          </a>
         </div>
       </div>
 
-      {/* Deploy status */}
       {token && (
         <div className="mb-4">
           <GitHubStatus token={token} />
         </div>
       )}
 
-      {/* Delete error */}
       {deleteError && (
         <div className="mb-4 rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-600 dark:text-red-400">
           {deleteError}
         </div>
       )}
 
-      {/* Post count */}
       <p className="mb-4 text-sm text-text-secondary">
         共 {posts.length} 篇文章
       </p>
 
-      {/* Empty state */}
       {posts.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center text-text-secondary">
           还没有文章，快去写第一篇吧！
@@ -294,19 +275,19 @@ export default function AdminPostsPage() {
                 )}
               </div>
               <div className="ml-4 flex shrink-0 gap-2">
-                <Link
-                  href={`/admin/editor.html?slug=${encodeURIComponent(post.slug)}&category=${encodeURIComponent(post.category)}`}
+                <a
+                  href={`${BASE}/admin/editor.html?slug=${encodeURIComponent(post.slug)}&category=${encodeURIComponent(post.category)}`}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary"
                 >
                   编辑
-                </Link>
-                <Link
-                  href={`/blog/${post.category}/${post.slug}`}
+                </a>
+                <a
+                  href={`${BASE}/blog/${post.category}/${post.slug}`}
                   target="_blank"
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary"
                 >
                   查看
-                </Link>
+                </a>
                 <button
                   onClick={() => setDeleteTarget(post)}
                   disabled={deleting === post.slug}
@@ -320,7 +301,6 @@ export default function AdminPostsPage() {
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
       {deleteTarget && (
         <DeleteConfirmDialog
           title={deleteTarget.title}
