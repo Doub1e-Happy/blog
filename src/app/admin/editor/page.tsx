@@ -13,7 +13,11 @@ import {
 } from "@/lib/github";
 import { GitHubStatus } from "@/components/admin/GitHubStatus";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
+function getBasePath(): string {
+  if (typeof window === "undefined") return "";
+  const match = window.location.pathname.match(/^(\/blog)(?=\/)/);
+  return match ? match[1] : "";
+}
 
 export default function AdminEditorPage() {
   const searchParams = useSearchParams();
@@ -32,9 +36,11 @@ export default function AdminEditorPage() {
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
   const [token, setToken] = useState("");
+  const [basePath, setBasePath] = useState("");
 
   // Initialize token
   useEffect(() => {
+    setBasePath(getBasePath());
     setToken(getToken());
   }, []);
 
@@ -166,7 +172,7 @@ ${content}`;
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push(`${BASE}/admin/posts.html`)}
+            onClick={() => router.push(`${basePath}/admin/posts.html`)}
             className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary transition-colors hover:text-text"
           >
             &larr; 返回
@@ -275,7 +281,7 @@ ${content}`;
                 <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
                   <p className="text-xs text-yellow-600 dark:text-yellow-400">
                     ⚠️ 未设置 GitHub Token，无法保存。请在
-                    <a href={`${BASE}/admin.html`} className="underline">管理后台</a>
+                    <a href={`${basePath}/admin.html`} className="underline">管理后台</a>
                     设置。
                   </p>
                 </div>

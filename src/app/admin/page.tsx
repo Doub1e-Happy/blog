@@ -3,12 +3,19 @@
 import { useState, useEffect } from "react";
 import { getToken, setToken } from "@/lib/github";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
+/** 从当前 URL 检测 basePath（兼容 /blog 子路径部署和本地开发） */
+function getBasePath(): string {
+  if (typeof window === "undefined") return "";
+  // 从路径中提取 basePath：/blog/admin → /blog, /admin → ""
+  const match = window.location.pathname.match(/^(\/blog)(?=\/)/);
+  return match ? match[1] : "";
+}
 
 export default function AdminPage() {
   const [tokenInput, setTokenInput] = useState("");
   const [tokenSet, setTokenSet] = useState(false);
   const [tokenSaved, setTokenSaved] = useState(false);
+  const [basePath, setBasePath] = useState("");
 
   // Password change
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -16,6 +23,7 @@ export default function AdminPage() {
   const [passwordSaved, setPasswordSaved] = useState(false);
 
   useEffect(() => {
+    setBasePath(getBasePath());
     const t = getToken();
     if (t) {
       setTokenInput(t);
@@ -47,7 +55,7 @@ export default function AdminPage() {
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
         <a
-          href={`${BASE}/admin/editor.html`}
+          href={`${basePath}/admin/editor.html`}
           className="rounded-xl border border-border bg-surface p-6 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/5"
         >
           <div className="mb-2 text-2xl">✍️</div>
@@ -57,7 +65,7 @@ export default function AdminPage() {
           </p>
         </a>
         <a
-          href={`${BASE}/admin/posts.html`}
+          href={`${basePath}/admin/posts.html`}
           className="rounded-xl border border-border bg-surface p-6 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/5"
         >
           <div className="mb-2 text-2xl">📋</div>

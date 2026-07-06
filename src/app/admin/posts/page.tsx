@@ -12,7 +12,11 @@ import {
 import { GitHubStatus } from "@/components/admin/GitHubStatus";
 import { CATEGORIES } from "@/lib/constants";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
+function getBasePath(): string {
+  if (typeof window === "undefined") return "";
+  const match = window.location.pathname.match(/^(\/blog)(?=\/)/);
+  return match ? match[1] : "";
+}
 
 interface PostInfo {
   slug: string;
@@ -70,11 +74,13 @@ export default function AdminPostsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [token, setToken] = useState("");
+  const [basePath, setBasePath] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PostInfo | null>(null);
   const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
+    setBasePath(getBasePath());
     setToken(getToken());
   }, []);
 
@@ -169,7 +175,7 @@ export default function AdminPostsPage() {
             ⚠️ 未设置 GitHub Token，无法管理文章
           </p>
           <a
-            href={`${BASE}/admin.html`}
+            href={`${basePath}/admin.html`}
             className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
           >
             前往设置
@@ -203,7 +209,7 @@ export default function AdminPostsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <a
-            href={`${BASE}/admin.html`}
+            href={`${basePath}/admin.html`}
             className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary transition-colors hover:text-text"
           >
             &larr; 返回
@@ -219,7 +225,7 @@ export default function AdminPostsPage() {
             🔄 刷新
           </button>
           <a
-            href={`${BASE}/admin/editor.html`}
+            href={`${basePath}/admin/editor.html`}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
           >
             新建文章
@@ -276,13 +282,13 @@ export default function AdminPostsPage() {
               </div>
               <div className="ml-4 flex shrink-0 gap-2">
                 <a
-                  href={`${BASE}/admin/editor.html?slug=${encodeURIComponent(post.slug)}&category=${encodeURIComponent(post.category)}`}
+                  href={`${basePath}/admin/editor.html?slug=${encodeURIComponent(post.slug)}&category=${encodeURIComponent(post.category)}`}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary"
                 >
                   编辑
                 </a>
                 <a
-                  href={`${BASE}/blog/${post.category}/${post.slug}`}
+                  href={`${basePath}/blog/${post.category}/${post.slug}`}
                   target="_blank"
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary"
                 >
