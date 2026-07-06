@@ -1,33 +1,15 @@
-/**
- * @file 头像组件
- * 支持本地图片或外部 URL。将图片放入 public/images/avator.jpg 即可生效。
- * 也可传入 src 属性使用外部图片，或通过 alt 自定义替代文本。
- *
- * 用法：
- *   <Avatar size={96} />
- *   <Avatar size={80} src="/images/my-avatar.jpg" alt="我的头像" />
- */
-
-interface AvatarProps {
-  size?: number;
-  src?: string;
-  alt?: string;
-}
-
-export function Avatar({ size = 80, src = "/images/avator.jpg", alt = "voidbit 头像" }: AvatarProps) {
+export function Avatar({ size = 80, src, alt = "voidbit 头像" }: { size?: number; src?: string; alt?: string }) {
   const borderWidth = Math.max(2, Math.round(size / 48));
+  const finalSrc = src || "/blog/images/avator.jpg";
 
   return (
     <div
       className={`relative shrink-0 overflow-hidden rounded-2xl border-${borderWidth} border-border shadow-lg`}
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-      }}
+      style={{ width: `${size}px`, height: `${size}px` }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={finalSrc}
         alt={alt}
         width={size}
         height={size}
