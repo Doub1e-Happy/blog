@@ -47,7 +47,7 @@ export default function HomePage() {
           <p className="mb-1 text-lg font-medium text-text-secondary">
             网络安全 / AI For CyberSecurity
           </p>
-          <p className="mx-auto max-w-lg text-text-secondary">
+          <p className="mx-auto max-w-lg whitespace-nowrap text-text-secondary">
             {SITE.description}
           </p>
 
