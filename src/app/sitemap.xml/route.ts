@@ -27,7 +27,7 @@ export async function GET() {
   // Category pages
   for (const cat of categories) {
     urls.push({
-      loc: `${SITE.url}/blog/category/${cat.name}`,
+      loc: `${SITE.url}/blog/category/${cat.slug}`,
       priority: 0.7,
       changefreq: "weekly",
     });

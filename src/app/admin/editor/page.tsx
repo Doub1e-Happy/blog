@@ -12,6 +12,7 @@ import {
   triggerDeploy,
 } from "@/lib/github";
 import { GitHubStatus } from "@/components/admin/GitHubStatus";
+import { CATEGORIES } from "@/lib/constants";
 
 function getBasePath(): string {
   if (typeof window === "undefined") return "";
@@ -258,9 +259,11 @@ ${content}`;
                   onChange={(e) => setPostCategory(e.target.value)}
                   className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
-                  <option value="tech">技术</option>
-                  <option value="tutorials">教程</option>
-                  <option value="life">生活</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 

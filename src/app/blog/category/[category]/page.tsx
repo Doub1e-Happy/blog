@@ -1,7 +1,6 @@
 import { Metadata } from "next";
-import { getPostsByCategory } from "@/lib/posts";
+import { getPostsByCategory, getAllCategories } from "@/lib/posts";
 import { PostCard } from "@/components/blog/PostCard";
-import { notFound } from "next/navigation";
 import { CATEGORIES } from "@/lib/constants";
 
 interface Params {
@@ -22,8 +21,7 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams(): Params[] {
-  const { getAllCategories } = require("@/lib/posts");
-  return getAllCategories().map((c: { name: string }) => ({ category: c.name }));
+  return getAllCategories().map((c) => ({ category: c.slug }));
 }
 
 export default async function CategoryPage({
@@ -36,7 +34,24 @@ export default async function CategoryPage({
   const catInfo = CATEGORIES.find((c) => c.slug === category);
 
   if (posts.length === 0) {
-    notFound();
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">
+            {catInfo?.name || category}
+          </h1>
+          {catInfo?.description && (
+            <p className="mt-2 text-text-secondary">{catInfo.description}</p>
+          )}
+          <p className="mt-1 text-sm text-text-secondary/60">暂无文章</p>
+        </div>
+        <div className="rounded-xl border border-dashed border-border p-12 text-center">
+          <p className="text-text-secondary">
+            这个分类下还没有文章，敬请期待。
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

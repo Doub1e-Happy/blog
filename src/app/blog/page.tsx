@@ -23,13 +23,13 @@ export default function BlogPage() {
           <div>
             <h3 className="mb-2 text-sm font-semibold text-text">分类</h3>
             <div className="flex flex-col gap-1">
-              {categories.map(({ name, count }) => (
+              {categories.map(({ slug, name, count }) => (
                 <a
-                  key={name}
-                  href={`/blog/category/${name}`}
+                  key={slug}
+                  href={`/blog/category/${slug}`}
                   className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-secondary hover:text-primary"
                 >
-                  <span className="capitalize">{name}</span>
+                  <span>{name}</span>
                   <span className="text-xs tabular-nums opacity-50">
                     {count}
                   </span>

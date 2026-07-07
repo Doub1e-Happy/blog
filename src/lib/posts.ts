@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { Post, Frontmatter, CategoryInfo, TagInfo } from "@/types";
+import { CATEGORIES } from "@/lib/constants";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content/blog");
 
@@ -117,18 +118,29 @@ export function getPostsByTag(tag: string): Post[] {
 }
 
 /**
- * Get all unique categories with post counts.
+ * Get all categories with post counts.
+ * 预定义分类（见 constants.ts 的 CATEGORIES）始终列出，即使尚无文章使用，
+ * 以便前端导航与空状态页正常工作。文章中出现的未知分类也会被收录。
  */
 export function getAllCategories(): CategoryInfo[] {
   const posts = getAllPosts();
-  const map = new Map<string, number>();
-  for (const p of posts) {
-    const cat = p.frontmatter.category.toLowerCase();
-    map.set(cat, (map.get(cat) || 0) + 1);
+  const map = new Map<string, { slug: string; name: string; count: number }>();
+  // 先放入预定义分类，保留中文名，计数为 0。
+  for (const c of CATEGORIES) {
+    map.set(c.slug.toLowerCase(), { slug: c.slug, name: c.name, count: 0 });
   }
-  return Array.from(map.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  for (const p of posts) {
+    const raw = p.frontmatter.category;
+    const key = raw.toLowerCase();
+    const prev = map.get(key);
+    if (prev) {
+      prev.count += 1;
+    } else {
+      // 文章用了未预定义的分类：slug 与显示名都用原始值。
+      map.set(key, { slug: raw, name: raw, count: 1 });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.count - a.count);
 }
 
 /**

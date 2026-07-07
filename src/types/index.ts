@@ -34,6 +34,7 @@ export interface SearchDocument {
 }
 
 export interface CategoryInfo {
+  slug: string;
   name: string;
   count: number;
 }
